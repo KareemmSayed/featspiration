@@ -1,4 +1,4 @@
-# feature-findings
+# feature-storming
 
 An agent skill that answers "here is another project, what can mine take from it?" with one page you can build from for weeks.
 
@@ -10,29 +10,29 @@ Point your coding agent at an outside codebase, library, paper or list of ideas.
 
 It is made for people who build one feature per session because their sessions are time- or usage-limited.
 
-Open [`examples/fieldnote.html`](examples/fieldnote.html) in a browser to see a page (a made-up project, built from [`example.findings.json`](skills/feature-findings/assets/example.findings.json)).
+Open [`examples/fieldnote.html`](examples/fieldnote.html) in a browser to see a page (a made-up project, built from [`example.findings.json`](skills/feature-storming/assets/example.findings.json)).
 
 ## Install
 
 With the [skills CLI](https://github.com/vercel-labs/skills), which installs into Claude Code, Cursor, Antigravity, Codex, Gemini CLI and many other agents:
 
 ```bash
-npx skills add KareemmSayed/feature-findings
+npx skills add KareemmSayed/feature-storming
 ```
 
 Pick agents explicitly, or install for your user account instead of the current project:
 
 ```bash
-npx skills add KareemmSayed/feature-findings -a claude-code -a cursor -a antigravity
-npx skills add KareemmSayed/feature-findings -g
+npx skills add KareemmSayed/feature-storming -a claude-code -a cursor -a antigravity
+npx skills add KareemmSayed/feature-storming -g
 ```
 
-**By hand.** Copy the `skills/feature-findings` folder into your tool's skills directory. For Claude Code that is `~/.claude/skills/` (all projects) or `.claude/skills/` (one project).
+**By hand.** Copy the `skills/feature-storming` folder into your tool's skills directory. For Claude Code that is `~/.claude/skills/` (all projects) or `.claude/skills/` (one project).
 
 **Claude desktop and claude.ai.** Zip the skill folder and upload the zip where the app manages skills:
 
 ```bash
-cd skills && zip -r ../feature-findings.zip feature-findings
+cd skills && zip -r ../feature-storming.zip feature-storming
 ```
 
 ## Use
@@ -40,7 +40,7 @@ cd skills && zip -r ../feature-findings.zip feature-findings
 Invoke it by name, with what to review:
 
 ```
-/feature-findings ../some-other-repo
+/feature-storming ../some-other-repo
 ```
 
 Or just ask:
@@ -49,14 +49,14 @@ Or just ask:
 
 > Plan these six ideas as prompts I can build one session at a time. My sessions are 5 hours.
 
-The agent saves `findings.json` and the built page in your project under `docs/feature-findings/`, and shows or publishes the page if its environment can.
+The agent saves `findings.json` and the built page in your project under `docs/feature-storming/`, and shows or publishes the page if its environment can.
 
 ## How it works
 
 The agent writes content only, as a `findings.json` file. A bundled script validates it and renders it into a fixed template, so every page looks the same and nothing is hand-written HTML.
 
 ```bash
-node skills/feature-findings/scripts/build.mjs findings.json -o findings.html
+node skills/feature-storming/scripts/build.mjs findings.json -o findings.html
 ```
 
 | Option | Does |
@@ -70,7 +70,7 @@ The script needs Node 18 or newer and has no dependencies. It refuses to build w
 What is in the skill:
 
 ```
-skills/feature-findings/
+skills/feature-storming/
   SKILL.md                      the process the agent follows
   assets/template.html          the page design and behaviour
   assets/example.findings.json  a complete example to copy from
@@ -89,7 +89,7 @@ skills/feature-findings/
 
 ## Design
 
-The look is fixed on purpose and documented in [`references/design.md`](skills/feature-findings/references/design.md): monochrome ink on black or warm off-white, a faint dot field, the Doto dot-matrix face for headings and numbers, hairlines in place of shadows, and colour only where it means something.
+The look is fixed on purpose and documented in [`references/design.md`](skills/feature-storming/references/design.md): monochrome ink on black or warm off-white, a faint dot field, the Doto dot-matrix face for headings and numbers, hairlines in place of shadows, and colour only where it means something.
 
 ## Licence
 
