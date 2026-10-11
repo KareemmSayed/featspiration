@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds a feature-storming page: checks a findings.json file and injects it into assets/template.html.
+// Builds a featspiration page: checks a findings.json file and injects it into assets/template.html.
 // No dependencies. Needs Node 18 or newer.
 //
 //   node build.mjs findings.json                 -> findings.html next to the JSON (a complete HTML document)

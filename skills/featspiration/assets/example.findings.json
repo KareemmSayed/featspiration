@@ -123,5 +123,5 @@
     }
   ],
   "groundRules": "Ground rules for this repo\n- Fieldnote is a TypeScript app. Search code lives in src/search, storage and migrations in src/store, screens in src/ui. Read the files named above before designing; if anything in this prompt disagrees with the code, the code wins: say what differed.\n- Keep matching and ranking as pure functions with named constants, and say in a comment when a constant is a tunable starting value.\n- Everything must work offline.\n- Match the surrounding code's style and naming.\n- Finish by running the type check, the linter and the tests, and report exactly what you ran and what passed. If the change shows in the UI, check it there and say what you saw.\n- Stay inside the scope above. List follow-ups at the end; do not build them.",
-  "footer": "Example page shipped with the feature-storming skill. Fieldnote and lumen-search are fictional; the numbers in the table were computed."
+  "footer": "Example page shipped with the featspiration skill. Fieldnote and lumen-search are fictional; the numbers in the table were computed."
 }

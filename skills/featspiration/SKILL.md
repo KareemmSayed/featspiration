@@ -1,5 +1,5 @@
 ---
-name: feature-storming
+name: featspiration
 description: Review outside codebases, libraries, docs, papers, competitors or a list of ideas against the project you are working in, and produce one designed HTML findings page - a short bullet read for the human, a build order, and one self-contained, copy-ready implementation prompt per feature. Use this whenever the user asks what their project can take, borrow, port or learn from another repo or source; asks to mine or audit a codebase for features worth having; wants a feature plan or roadmap split into prompts they can hand to a coding agent one session at a time; or says "feature findings", "findings page", "findings artifact" or "feature prompts". Use it even when they only say "check this project and tell me what is useful for mine".
 license: MIT
 metadata:
@@ -98,7 +98,7 @@ Do not edit the template's CSS or script for a single report, and do not restyle
 
 ## Delivery
 
-1. Save `findings.json` and the built HTML together inside the host project, in `docs/feature-storming/<short-slug>.html` unless the project keeps documents somewhere else. Keeping the JSON lets the page be rebuilt when plans change.
+1. Save `findings.json` and the built HTML together inside the host project, in `docs/featspiration/<short-slug>.html` unless the project keeps documents somewhere else. Keeping the JSON lets the page be rebuilt when plans change.
 2. If your environment can show or publish HTML, do that too:
    - **Claude with the Artifact tool**: build a second copy with `--fragment` (the tool adds its own document shell) and publish that file.
    - **A preview pane or browser tool**: open the built file.

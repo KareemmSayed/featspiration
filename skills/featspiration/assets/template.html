@@ -303,7 +303,7 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   }
 
   // "Built" ticks live in this reader's browser only
-  var KEY = 'feature-storming:' + String(DATA.title || project).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  var KEY = 'featspiration:' + String(DATA.title || project).toLowerCase().replace(/[^a-z0-9]+/g, '-');
   var built = [];
   try { built = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { built = []; }
   function saveBuilt() { try { localStorage.setItem(KEY, JSON.stringify(built)); } catch (e) {} }
