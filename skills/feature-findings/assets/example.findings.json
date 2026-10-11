@@ -1,0 +1,127 @@
+{
+  "project": "Fieldnote",
+  "title": "Fieldnote Search Findings",
+  "eyebrow": "Example · fictional project · reviewed: lumen-search",
+  "headline": "What Fieldnote can take from lumen-search",
+  "intro": "**4 features, in build order.** Each one has a description for you and a prompt you paste into a fresh coding-agent session in the Fieldnote repo. This page is a made-up example that ships with the skill: Fieldnote and lumen-search do not exist.",
+  "aura": "violet",
+  "read": {
+    "blocks": [
+      {
+        "title": "lumen-search",
+        "bullets": [
+          "A small Rust search library for desktop apps, MIT licensed, so its ideas and code can both be reused.",
+          "**Good ideas:** trigram typo matching, recency boost, saved queries.",
+          "**Not portable as is:** it assumes the whole index fits in memory and rebuilds it on every launch."
+        ]
+      },
+      {
+        "title": "Fieldnote today",
+        "bullets": [
+          "Search is a case-insensitive substring scan over note titles and bodies in `src/search/scan.ts`.",
+          "No ranking: results come back in creation order.",
+          "Notes already carry `updatedAt`, so recency needs no schema change."
+        ]
+      },
+      {
+        "title": "Three things to know before building",
+        "wide": true,
+        "bullets": [
+          "**The source's typo threshold lets wrong words through.** It accepts any word with trigram similarity of 0.30 or more. I ran it: a real typo and a different word score almost the same (table below), so similarity alone cannot separate them.",
+          "**Adding an edit-distance check fixes it.** Keep trigram similarity to find candidates, then accept only words within one edit.",
+          "**Everything here works offline.** Nothing needs a server, which matters because Fieldnote is offline-first."
+        ]
+      },
+      {
+        "title": "The typo check",
+        "wide": true,
+        "text": "Trigram similarity (shared 3-letter chunks over all chunks, words padded with two leading spaces and one trailing) and edit distance counting a swap of neighbours as one edit.",
+        "table": {
+          "columns": ["Query", "Indexed word", "Similarity", "Edits", "Source accepts", "Should accept"],
+          "rows": [
+            [{ "text": "recieve", "tone": "num" }, "receive", "0.33", "1", "yes", { "text": "yes", "tone": "good" }],
+            [{ "text": "meetign", "tone": "num" }, "meeting", "0.45", "1", "yes", { "text": "yes", "tone": "good" }],
+            [{ "text": "budgets", "tone": "num" }, "budget", "0.67", "1", "yes", { "text": "yes", "tone": "good" }],
+            [{ "text": "invoke", "tone": "num" }, "invoice", "0.36", "2", { "text": "yes", "tone": "bad" }, { "text": "no", "tone": "good" }],
+            [{ "text": "chicken", "tone": "num" }, "kitchen", "0.07", "4", "no", { "text": "no", "tone": "good" }]
+          ]
+        },
+        "note": "Computed with a scratch script while writing this page. \"invoke\" scores higher than the real typo \"recieve\", so no single similarity threshold gets both right."
+      },
+      {
+        "title": "Skip these",
+        "bullets": [
+          "**Index sharding.** Built for millions of documents; a notebook has thousands.",
+          "**Learned ranking.** Needs click data Fieldnote does not collect.",
+          "**Stemming for 14 languages.** Adds 2 MB to the bundle for a feature nobody asked for."
+        ]
+      },
+      {
+        "title": "What is weak in the source",
+        "bullets": [
+          "Typo threshold accepts unrelated words (see the table).",
+          "Recency boost uses the creation date, so an old note edited today ranks as old.",
+          "The index is rebuilt from scratch on every launch."
+        ]
+      }
+    ]
+  },
+  "tiers": [
+    { "id": "a", "label": "Start here", "note": "Ranking and matching on data Fieldnote already has." },
+    { "id": "b", "label": "After that", "note": "New storage and UI." }
+  ],
+  "features": [
+    {
+      "id": "01",
+      "tier": "a",
+      "size": "M",
+      "sources": ["lumen-search"],
+      "title": "Typo-tolerant search",
+      "description": "Search that still finds \"receive\" when you type \"recieve\". Today a single wrong letter returns nothing, which is the most common complaint in the feedback board.",
+      "inSource": ["Trigram index; any word with similarity 0.30 or more matches.", "Lets unrelated words through: \"invoke\" matches \"invoice\"."],
+      "better": ["Trigram similarity only proposes candidates.", "A candidate is accepted when it is within one edit, swaps included.", "Exact matches always rank first."],
+      "landsIn": ["src/search/trigram.ts", "src/search/scan.ts", "src/search/__tests__"],
+      "prompt": "Make note search tolerate typos.\n\nWhy: search today is a case-insensitive substring scan (src/search/scan.ts), so one wrong letter returns nothing. It is the most common complaint on the feedback board.\n\nBuild:\n1. src/search/trigram.ts: trigrams(word) pads the lower-cased word with two leading spaces and one trailing space and returns its set of 3-character chunks. similarity(a, b) = shared chunks / all distinct chunks (Jaccard).\n2. editDistance(a, b): optimal string alignment distance, where swapping two neighbouring letters counts as one edit.\n3. Matching: for each query word, candidates are indexed words with similarity of 0.30 or more. Accept a candidate only if editDistance is 1 or less. Exact and substring matches are always accepted and rank above typo matches.\n4. Tests with these fixtures (similarity, edits): recieve/receive 0.33, 1; meetign/meeting 0.45, 1; budgets/budget 0.67, 1; invoke/invoice 0.36, 2 (must NOT match); chicken/kitchen 0.07, 4 (must NOT match).\n5. Wire it into the search screen and mark typo matches with a subtle 'similar' label.\n\nImprove on the source: lumen-search accepts on similarity alone, which lets 'invoke' match 'invoice' while scoring it higher than the real typo 'recieve'. The edit-distance gate is the fix. The 0.30 threshold is lumen-search's own tuning, not a published value: name it as a constant.\n\nOut of scope: ranking by recency, stemming, searching inside attachments."
+    },
+    {
+      "id": "02",
+      "tier": "a",
+      "size": "S",
+      "sources": ["lumen-search"],
+      "needs": ["01"],
+      "title": "Recency-aware ranking",
+      "description": "Recently edited notes rise in the results. Results come back in creation order today, so the note you touched this morning can sit below one from two years ago.",
+      "inSource": ["Multiplies the text score by a boost that halves every 30 days.", "Uses the creation date, so an old note edited today counts as old."],
+      "better": ["Uses `updatedAt`, which Fieldnote already stores.", "Boost is capped so an exact match in an old note still beats a typo match in a new one."],
+      "landsIn": ["src/search/rank.ts", "src/search/scan.ts"],
+      "prompt": "Rank search results so recently edited notes come first among equally good matches. This builds on the typo-tolerant matcher in src/search/trigram.ts, which must be merged first.\n\nWhy: results are returned in creation order, so a note edited this morning can sit below one from two years ago.\n\nBuild:\n1. src/search/rank.ts: score = textScore x (1 + 0.5 x 0.5^(ageDays / 30)), where ageDays counts from the note's updatedAt. Check values for textScore 1: age 0 gives 1.500, 30 days gives 1.250, 90 days gives 1.063, a year gives 1.000.\n2. textScore: 1.0 for an exact word match, 0.8 for a substring match, 0.5 for a typo match. These three weights are starting values: name them as constants.\n3. Sort by score, then by updatedAt, newest first.\n4. Unit tests for the check values above and for the rule that an exact match in a year-old note (1.000) outranks a typo match in a note edited today (0.750).\n\nImprove on the source: lumen-search ages notes from their creation date. Use updatedAt.\n\nOut of scope: pinning, per-notebook weighting, any UI change beyond the new order."
+    },
+    {
+      "id": "03",
+      "tier": "b",
+      "size": "M",
+      "sources": ["lumen-search"],
+      "title": "Saved searches",
+      "description": "Keep a search as a named shortcut in the sidebar, such as \"open questions\" or \"this week\". People re-type the same three or four queries every day.",
+      "inSource": ["Saved queries are stored as raw query strings in a config file.", "No way to rename or reorder them."],
+      "better": ["Stored with the notebook so they sync like notes do.", "Rename, reorder and delete from the sidebar."],
+      "landsIn": ["src/store/saved-searches.ts", "src/ui/sidebar", "src/store/migrations"],
+      "prompt": "Add saved searches: a named shortcut in the sidebar that runs a stored query.\n\nWhy: people re-type the same few queries every day. Read how notes are stored and synced in src/store before designing, and follow the same pattern.\n\nBuild:\n1. A SavedSearch record (id, name, query, position, createdAt) stored alongside notes so it syncs the same way, with a migration in src/store/migrations.\n2. Store functions to create, rename, reorder and delete, with tests.\n3. Sidebar: a 'Saved' section listing them in position order. Selecting one runs the query in the search screen. A 'Save this search' action on the search screen creates one, with the query as the default name.\n4. Empty state copy for the section when there are none.\n\nImprove on the source: lumen-search keeps saved queries as raw strings in a local config file, so they do not sync and cannot be renamed. Store them as records.\n\nOut of scope: sharing a saved search, smart folders, notifications."
+    },
+    {
+      "id": "04",
+      "tier": "b",
+      "size": "L",
+      "sources": ["lumen-search"],
+      "needs": ["01"],
+      "title": "Persistent search index",
+      "description": "Build the search index once and update it as notes change, so search is instant on launch. Scanning every note per keystroke is fine at 500 notes and slow at 20,000.",
+      "inSource": ["Whole index held in memory.", "Rebuilt from scratch at every launch."],
+      "better": ["Stored on disk and updated per note edit.", "Rebuilt in the background only when its version changes."],
+      "landsIn": ["src/search/index-store.ts", "src/store/migrations", "src/search/trigram.ts"],
+      "prompt": "Persist the trigram search index so it is built once and updated as notes change. This builds on src/search/trigram.ts, which must be merged first.\n\nWhy: search scans every note on every keystroke. It is fine at 500 notes and slow at 20,000, and the typo matcher makes each scan more expensive.\n\nBuild:\n1. src/search/index-store.ts: a table mapping trigram to note ids, plus an index version number. Add the migration in src/store/migrations.\n2. Update the entries for one note whenever it is created, edited or deleted, inside the same transaction as the note write.\n3. On launch, if the stored index version differs from the code's version, rebuild in the background in batches and keep the old substring scan working until the rebuild finishes.\n4. Switch search to read candidates from the index.\n5. Tests: edits keep the index consistent; a version bump triggers a rebuild; search results are identical before and after the switch for a fixture notebook.\n6. Measure search time on a 20,000-note fixture before and after and report both numbers.\n\nImprove on the source: lumen-search holds the whole index in memory and rebuilds it at every launch. Persist it and update it per edit.\n\nOut of scope: full-text ranking models, searching attachments, changing the sync protocol."
+    }
+  ],
+  "groundRules": "Ground rules for this repo\n- Fieldnote is a TypeScript app. Search code lives in src/search, storage and migrations in src/store, screens in src/ui. Read the files named above before designing; if anything in this prompt disagrees with the code, the code wins: say what differed.\n- Keep matching and ranking as pure functions with named constants, and say in a comment when a constant is a tunable starting value.\n- Everything must work offline.\n- Match the surrounding code's style and naming.\n- Finish by running the type check, the linter and the tests, and report exactly what you ran and what passed. If the change shows in the UI, check it there and say what you saw.\n- Stay inside the scope above. List follow-ups at the end; do not build them.",
+  "footer": "Example page shipped with the feature-findings skill. Fieldnote and lumen-search are fictional; the numbers in the table were computed."
+}

@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fieldnote Search Findings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Doto:wght@600;700;900&family=Inter+Tight:wght@400;500;600;700&display=swap">
+<style>
+/* Feature findings page. Do not edit per report: content comes from the JSON block at the end.
+   Layout: one reading column on a dot-field ground. One aura hero, hairline surfaces, Doto for display
+   headings and numbers only, colour only where it means something (job size, cool to hot). */
+:root {
+  color-scheme: dark;
+  --bg: #000000; --surface: #0c0c0d; --elevated: #161618; --container: #1f1f22;
+  --line: #1e1e21; --line-strong: #2a2a2e;
+  --text: #f4f3ef; --muted: #8e9195; --neutral: #76797d;
+  --ink: #f4f3ef; --on-ink: #000000; --dim: #232326;
+  --positive: #32d583; --warning: #ffb224; --danger: #ff5a4e;
+  --e1: #4da8ff; --e3: #a56bff; --e5: #ff7a45;
+  --glass: rgba(12, 12, 13, 0.78); --dot-field: rgba(244, 243, 239, 0.055);
+  --aura-text: #f4f3ef; --aura-muted: rgba(244, 243, 239, 0.72);
+  --font-dot: 'Doto', ui-monospace, monospace;
+  --font-sans: 'Helvetica Neue', Helvetica, 'Inter Tight', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --r-tile: 14px; --r-card: 22px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f4f3ef; --surface: #fcfbf9; --elevated: #edece7; --container: #e4e2dc;
+    --line: #e2e0da; --line-strong: #d3d1ca;
+    --text: #0a0a0a; --muted: #5f6266; --neutral: #76797d;
+    --ink: #0a0a0a; --on-ink: #f4f3ef; --dim: #dedcd5;
+    --positive: #1b7f4b; --warning: #a15c00; --danger: #c7281b;
+    --glass: rgba(252, 251, 249, 0.82); --dot-field: rgba(10, 10, 10, 0.07);
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f3ef; --surface: #fcfbf9; --elevated: #edece7; --container: #e4e2dc;
+  --line: #e2e0da; --line-strong: #d3d1ca;
+  --text: #0a0a0a; --muted: #5f6266; --neutral: #76797d;
+  --ink: #0a0a0a; --on-ink: #f4f3ef; --dim: #dedcd5;
+  --positive: #1b7f4b; --warning: #a15c00; --danger: #c7281b;
+  --glass: rgba(252, 251, 249, 0.82); --dot-field: rgba(10, 10, 10, 0.07);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background-color: var(--bg); color: var(--text);
+  font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(var(--dot-field) 1px, transparent 1.2px);
+  background-size: 22px 22px; background-position: -11px -11px;
+}
+:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+a { color: inherit; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul { padding-inline-start: 18px; display: flex; flex-direction: column; gap: 6px; }
+li::marker { color: var(--neutral); }
+code { font-family: var(--font-mono); font-size: 0.86em; background: var(--elevated); padding: 1px 5px; border-radius: 5px; }
+b { font-weight: 600; }
+
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: var(--glass); backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px);
+  border-bottom: 1px solid var(--line);
+}
+.bar-in { max-width: 940px; margin: 0 auto; padding: 10px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.mark { font-family: var(--font-dot); font-weight: 900; font-size: 15px; letter-spacing: 0.06em; margin-inline-end: auto; text-transform: uppercase; }
+.bar nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.bar nav a { text-decoration: none; font-size: 13px; font-weight: 500; color: var(--muted); padding: 5px 10px; border-radius: 999px; }
+.bar nav a:hover { color: var(--text); background: var(--elevated); }
+
+.wrap { max-width: 940px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 80px; display: flex; flex-direction: column; gap: 40px; }
+section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 70px; }
+.eyebrow { font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+h2 { font-family: var(--font-dot); font-weight: 700; font-size: 26px; line-height: 1.15; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 68ch; }
+
+/* Hero: near-black with one glow and light text in both themes. Pick the glow for what it means. */
+.aura {
+  --aura-base: #0b0714;
+  --aura-glow: radial-gradient(circle at 15% 110%, rgba(150, 84, 255, 0.6) 0%, rgba(70, 24, 150, 0.28) 45%, rgba(11, 7, 20, 0) 80%);
+  color: var(--aura-text); background-color: var(--aura-base); background-image: var(--aura-glow);
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 26px;
+  padding: 28px; display: flex; flex-direction: column; gap: 14px;
+}
+.aura-graphite { --aura-base: #0e0e10; --aura-glow: radial-gradient(circle at 85% 0%, rgba(160, 163, 168, 0.3) 0%, rgba(14, 14, 16, 0) 70%); }
+.aura-ember { --aura-base: #120606; --aura-glow: radial-gradient(circle at 50% -10%, rgba(255, 72, 48, 0.62) 0%, rgba(120, 18, 10, 0.3) 45%, rgba(18, 6, 6, 0) 80%); }
+.aura-moss { --aura-base: #050e08; --aura-glow: radial-gradient(circle at 100% 100%, rgba(84, 214, 120, 0.5) 0%, rgba(20, 90, 40, 0.25) 45%, rgba(5, 14, 8, 0) 80%); }
+.aura-amber { --aura-base: #110b03; --aura-glow: radial-gradient(circle at 90% 0%, rgba(255, 178, 36, 0.5) 0%, rgba(140, 82, 0, 0.24) 45%, rgba(17, 11, 3, 0) 80%); }
+.aura-azure { --aura-base: #040a14; --aura-glow: radial-gradient(circle at 0% 0%, rgba(77, 168, 255, 0.52) 0%, rgba(22, 72, 150, 0.26) 45%, rgba(4, 10, 20, 0) 80%); }
+.aura-flame { --aura-base: #140804; --aura-glow: radial-gradient(circle at 85% 110%, rgba(255, 122, 69, 0.6) 0%, rgba(150, 52, 12, 0.28) 45%, rgba(20, 8, 4, 0) 80%); }
+.aura .eyebrow { color: var(--aura-muted); }
+.aura h1 { font-family: var(--font-dot); font-weight: 600; font-size: clamp(27px, 5.4vw, 42px); line-height: 1.08; text-wrap: balance; max-width: 20ch; }
+.aura p { color: var(--aura-muted); max-width: 62ch; }
+.aura p b { color: var(--aura-text); }
+.aura code { background: rgba(255, 255, 255, 0.1); }
+.steps { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; flex-direction: row; }
+.steps li { font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.16); color: var(--aura-text); }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.block.wide { grid-column: 1 / -1; }
+.block h3 { font-size: 15px; font-weight: 600; }
+.block li { font-size: 14px; }
+.note { font-size: 13px; color: var(--muted); }
+
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-tile); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: start; padding: 9px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--font-dot); font-weight: 900; font-size: 14px; }
+td.bad { color: var(--danger); }
+td.good { color: var(--positive); }
+td.warn { color: var(--warning); }
+td.muted { color: var(--muted); }
+td.wrapcell { white-space: normal; min-width: 180px; }
+td a { text-decoration: none; font-weight: 600; }
+td a:hover { text-decoration: underline; }
+
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { font: inherit; font-size: 13px; font-weight: 500; color: var(--muted); background: transparent; border: 1px solid var(--line-strong); padding: 6px 13px; border-radius: 999px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.count { margin-inline-start: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.cards { display: flex; flex-direction: column; gap: 16px; }
+.tier-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-top: 12px; }
+.tier-head span { font-size: 13px; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 22px; display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 70px; min-width: 0; }
+.card.built { opacity: 0.62; }
+.card-top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.no { font-family: var(--font-dot); font-weight: 900; font-size: 15px; color: var(--muted); }
+.tag { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; color: var(--muted); border: 1px solid var(--line-strong); padding: 2px 8px; border-radius: 999px; }
+.size { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); display: block; }
+.built-toggle { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.built-toggle input { accent-color: var(--positive); width: 15px; height: 15px; margin: 0; }
+.card h3 { font-family: var(--font-dot); font-weight: 700; font-size: 22px; line-height: 1.15; text-wrap: balance; }
+.desc { max-width: 70ch; }
+.needs { font-size: 13px; color: var(--muted); }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cols.one { grid-template-columns: minmax(0, 1fr); }
+.col { background: var(--elevated); border-radius: var(--r-tile); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.col li { font-size: 13.5px; }
+.col code { background: var(--container); }
+.lands { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lands code { font-size: 12px; overflow-wrap: anywhere; }
+
+.code { border: 1px solid var(--line-strong); border-radius: var(--r-tile); overflow: hidden; background: var(--elevated); min-width: 0; }
+.code-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; padding-inline-start: 14px; border-bottom: 1px solid var(--line-strong); }
+.code-head .eyebrow { margin-inline-end: auto; }
+.btn { font: inherit; font-size: 12.5px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; border: 1px solid var(--line-strong); background: transparent; color: var(--text); }
+.btn.primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.code pre { margin: 0; padding: 14px 16px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 300px; overflow: auto; color: var(--text); text-align: start; }
+.code.open pre { max-height: none; }
+
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 720px) {
+  .grid, .cols { grid-template-columns: minmax(0, 1fr); }
+  .wrap, .bar-in { padding-inline: 16px; }
+  .aura { padding: 22px; }
+  .card { padding: 18px; }
+  .built-toggle { margin-inline-start: 0; }
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <span class="mark" id="mark"></span>
+    <nav id="nav" aria-label="Sections"></nav>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="aura" id="hero">
+    <span class="eyebrow" id="hero-eyebrow"></span>
+    <h1 id="hero-title"></h1>
+    <p id="hero-intro"></p>
+    <ul class="steps" id="hero-steps"></ul>
+  </header>
+
+  <section id="read">
+    <span class="eyebrow" id="read-eyebrow"></span>
+    <h2 id="read-title"></h2>
+    <div class="grid" id="read-grid"></div>
+  </section>
+
+  <section id="order">
+    <span class="eyebrow" id="order-eyebrow"></span>
+    <h2 id="order-title"></h2>
+    <p class="lede" id="order-lede"></p>
+    <div class="scroll"><table id="order-table"><thead><tr></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="features">
+    <span class="eyebrow" id="features-eyebrow"></span>
+    <h2 id="features-title"></h2>
+    <p class="lede" id="features-lede"></p>
+    <div class="tools" id="tools"><span class="count" id="built-count"></span></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script type="application/json" id="findings-data">{"project":"Fieldnote","title":"Fieldnote Search Findings","eyebrow":"Example · fictional project · reviewed: lumen-search","headline":"What Fieldnote can take from lumen-search","intro":"**4 features, in build order.** Each one has a description for you and a prompt you paste into a fresh coding-agent session in the Fieldnote repo. This page is a made-up example that ships with the skill: Fieldnote and lumen-search do not exist.","aura":"violet","read":{"blocks":[{"title":"lumen-search","bullets":["A small Rust search library for desktop apps, MIT licensed, so its ideas and code can both be reused.","**Good ideas:** trigram typo matching, recency boost, saved queries.","**Not portable as is:** it assumes the whole index fits in memory and rebuilds it on every launch."]},{"title":"Fieldnote today","bullets":["Search is a case-insensitive substring scan over note titles and bodies in `src/search/scan.ts`.","No ranking: results come back in creation order.","Notes already carry `updatedAt`, so recency needs no schema change."]},{"title":"Three things to know before building","wide":true,"bullets":["**The source's typo threshold lets wrong words through.** It accepts any word with trigram similarity of 0.30 or more. I ran it: a real typo and a different word score almost the same (table below), so similarity alone cannot separate them.","**Adding an edit-distance check fixes it.** Keep trigram similarity to find candidates, then accept only words within one edit.","**Everything here works offline.** Nothing needs a server, which matters because Fieldnote is offline-first."]},{"title":"The typo check","wide":true,"text":"Trigram similarity (shared 3-letter chunks over all chunks, words padded with two leading spaces and one trailing) and edit distance counting a swap of neighbours as one edit.","table":{"columns":["Query","Indexed word","Similarity","Edits","Source accepts","Should accept"],"rows":[[{"text":"recieve","tone":"num"},"receive","0.33","1","yes",{"text":"yes","tone":"good"}],[{"text":"meetign","tone":"num"},"meeting","0.45","1","yes",{"text":"yes","tone":"good"}],[{"text":"budgets","tone":"num"},"budget","0.67","1","yes",{"text":"yes","tone":"good"}],[{"text":"invoke","tone":"num"},"invoice","0.36","2",{"text":"yes","tone":"bad"},{"text":"no","tone":"good"}],[{"text":"chicken","tone":"num"},"kitchen","0.07","4","no",{"text":"no","tone":"good"}]]},"note":"Computed with a scratch script while writing this page. \"invoke\" scores higher than the real typo \"recieve\", so no single similarity threshold gets both right."},{"title":"Skip these","bullets":["**Index sharding.** Built for millions of documents; a notebook has thousands.","**Learned ranking.** Needs click data Fieldnote does not collect.","**Stemming for 14 languages.** Adds 2 MB to the bundle for a feature nobody asked for."]},{"title":"What is weak in the source","bullets":["Typo threshold accepts unrelated words (see the table).","Recency boost uses the creation date, so an old note edited today ranks as old.","The index is rebuilt from scratch on every launch."]}]},"tiers":[{"id":"a","label":"Start here","note":"Ranking and matching on data Fieldnote already has."},{"id":"b","label":"After that","note":"New storage and UI."}],"features":[{"id":"01","tier":"a","size":"M","sources":["lumen-search"],"title":"Typo-tolerant search","description":"Search that still finds \"receive\" when you type \"recieve\". Today a single wrong letter returns nothing, which is the most common complaint in the feedback board.","inSource":["Trigram index; any word with similarity 0.30 or more matches.","Lets unrelated words through: \"invoke\" matches \"invoice\"."],"better":["Trigram similarity only proposes candidates.","A candidate is accepted when it is within one edit, swaps included.","Exact matches always rank first."],"landsIn":["src/search/trigram.ts","src/search/scan.ts","src/search/__tests__"],"prompt":"Make note search tolerate typos.\n\nWhy: search today is a case-insensitive substring scan (src/search/scan.ts), so one wrong letter returns nothing. It is the most common complaint on the feedback board.\n\nBuild:\n1. src/search/trigram.ts: trigrams(word) pads the lower-cased word with two leading spaces and one trailing space and returns its set of 3-character chunks. similarity(a, b) = shared chunks / all distinct chunks (Jaccard).\n2. editDistance(a, b): optimal string alignment distance, where swapping two neighbouring letters counts as one edit.\n3. Matching: for each query word, candidates are indexed words with similarity of 0.30 or more. Accept a candidate only if editDistance is 1 or less. Exact and substring matches are always accepted and rank above typo matches.\n4. Tests with these fixtures (similarity, edits): recieve/receive 0.33, 1; meetign/meeting 0.45, 1; budgets/budget 0.67, 1; invoke/invoice 0.36, 2 (must NOT match); chicken/kitchen 0.07, 4 (must NOT match).\n5. Wire it into the search screen and mark typo matches with a subtle 'similar' label.\n\nImprove on the source: lumen-search accepts on similarity alone, which lets 'invoke' match 'invoice' while scoring it higher than the real typo 'recieve'. The edit-distance gate is the fix. The 0.30 threshold is lumen-search's own tuning, not a published value: name it as a constant.\n\nOut of scope: ranking by recency, stemming, searching inside attachments."},{"id":"02","tier":"a","size":"S","sources":["lumen-search"],"needs":["01"],"title":"Recency-aware ranking","description":"Recently edited notes rise in the results. Results come back in creation order today, so the note you touched this morning can sit below one from two years ago.","inSource":["Multiplies the text score by a boost that halves every 30 days.","Uses the creation date, so an old note edited today counts as old."],"better":["Uses `updatedAt`, which Fieldnote already stores.","Boost is capped so an exact match in an old note still beats a typo match in a new one."],"landsIn":["src/search/rank.ts","src/search/scan.ts"],"prompt":"Rank search results so recently edited notes come first among equally good matches. This builds on the typo-tolerant matcher in src/search/trigram.ts, which must be merged first.\n\nWhy: results are returned in creation order, so a note edited this morning can sit below one from two years ago.\n\nBuild:\n1. src/search/rank.ts: score = textScore x (1 + 0.5 x 0.5^(ageDays / 30)), where ageDays counts from the note's updatedAt. Check values for textScore 1: age 0 gives 1.500, 30 days gives 1.250, 90 days gives 1.063, a year gives 1.000.\n2. textScore: 1.0 for an exact word match, 0.8 for a substring match, 0.5 for a typo match. These three weights are starting values: name them as constants.\n3. Sort by score, then by updatedAt, newest first.\n4. Unit tests for the check values above and for the rule that an exact match in a year-old note (1.000) outranks a typo match in a note edited today (0.750).\n\nImprove on the source: lumen-search ages notes from their creation date. Use updatedAt.\n\nOut of scope: pinning, per-notebook weighting, any UI change beyond the new order."},{"id":"03","tier":"b","size":"M","sources":["lumen-search"],"title":"Saved searches","description":"Keep a search as a named shortcut in the sidebar, such as \"open questions\" or \"this week\". People re-type the same three or four queries every day.","inSource":["Saved queries are stored as raw query strings in a config file.","No way to rename or reorder them."],"better":["Stored with the notebook so they sync like notes do.","Rename, reorder and delete from the sidebar."],"landsIn":["src/store/saved-searches.ts","src/ui/sidebar","src/store/migrations"],"prompt":"Add saved searches: a named shortcut in the sidebar that runs a stored query.\n\nWhy: people re-type the same few queries every day. Read how notes are stored and synced in src/store before designing, and follow the same pattern.\n\nBuild:\n1. A SavedSearch record (id, name, query, position, createdAt) stored alongside notes so it syncs the same way, with a migration in src/store/migrations.\n2. Store functions to create, rename, reorder and delete, with tests.\n3. Sidebar: a 'Saved' section listing them in position order. Selecting one runs the query in the search screen. A 'Save this search' action on the search screen creates one, with the query as the default name.\n4. Empty state copy for the section when there are none.\n\nImprove on the source: lumen-search keeps saved queries as raw strings in a local config file, so they do not sync and cannot be renamed. Store them as records.\n\nOut of scope: sharing a saved search, smart folders, notifications."},{"id":"04","tier":"b","size":"L","sources":["lumen-search"],"needs":["01"],"title":"Persistent search index","description":"Build the search index once and update it as notes change, so search is instant on launch. Scanning every note per keystroke is fine at 500 notes and slow at 20,000.","inSource":["Whole index held in memory.","Rebuilt from scratch at every launch."],"better":["Stored on disk and updated per note edit.","Rebuilt in the background only when its version changes."],"landsIn":["src/search/index-store.ts","src/store/migrations","src/search/trigram.ts"],"prompt":"Persist the trigram search index so it is built once and updated as notes change. This builds on src/search/trigram.ts, which must be merged first.\n\nWhy: search scans every note on every keystroke. It is fine at 500 notes and slow at 20,000, and the typo matcher makes each scan more expensive.\n\nBuild:\n1. src/search/index-store.ts: a table mapping trigram to note ids, plus an index version number. Add the migration in src/store/migrations.\n2. Update the entries for one note whenever it is created, edited or deleted, inside the same transaction as the note write.\n3. On launch, if the stored index version differs from the code's version, rebuild in the background in batches and keep the old substring scan working until the rebuild finishes.\n4. Switch search to read candidates from the index.\n5. Tests: edits keep the index consistent; a version bump triggers a rebuild; search results are identical before and after the switch for a fixture notebook.\n6. Measure search time on a 20,000-note fixture before and after and report both numbers.\n\nImprove on the source: lumen-search holds the whole index in memory and rebuilds it at every launch. Persist it and update it per edit.\n\nOut of scope: full-text ranking models, searching attachments, changing the sync protocol."}],"groundRules":"Ground rules for this repo\n- Fieldnote is a TypeScript app. Search code lives in src/search, storage and migrations in src/store, screens in src/ui. Read the files named above before designing; if anything in this prompt disagrees with the code, the code wins: say what differed.\n- Keep matching and ranking as pure functions with named constants, and say in a comment when a constant is a tunable starting value.\n- Everything must work offline.\n- Match the surrounding code's style and naming.\n- Finish by running the type check, the linter and the tests, and report exactly what you ran and what passed. If the change shows in the UI, check it there and say what you saw.\n- Stay inside the scope above. List follow-ups at the end; do not build them.","footer":"Example page shipped with the feature-findings skill. Fieldnote and lumen-search are fictional; the numbers in the table were computed."}</script>
+<script>
+(function () {
+  var DATA = JSON.parse(document.getElementById('findings-data').textContent);
+  var project = DATA.project || 'Project';
+
+  // Every fixed string on the page. A report in another language overrides these through DATA.labels.
+  var L = Object.assign({
+    navRead: 'Short read', navOrder: 'Build order', navFeatures: 'Features',
+    readEyebrow: 'Part 1 · for you', readTitle: 'The short read',
+    orderEyebrow: 'Sequence', orderTitle: 'Build order',
+    orderLede: 'Size is in working sessions with a coding agent: S is under half a session, M is one, L is a full session and may spill. "Needs" lists what must be merged first.',
+    featuresEyebrow: 'Part 2 · for the implementing session', featuresTitle: 'Features',
+    featuresLede: 'Each prompt stands alone: it names the real files, gives the detail needed to build, says what to improve on the source, and ends with the project\'s ground rules. Copy gives you the whole block.',
+    all: 'All', built: 'Built', builtCount: '{n} of {total} built',
+    needs: 'Needs first', helps: 'Helped by',
+    source: 'In the source', better: 'Better in ' + project, lands: 'Lands in',
+    prompt: 'Prompt · feature {id}', copy: 'Copy prompt', copied: 'Copied', selected: 'Selected · press copy',
+    expand: 'Expand', collapse: 'Collapse',
+    colNo: '#', colFeature: 'Feature', colFrom: 'From', colSize: 'Size', colNeeds: 'Needs',
+    sizeS: 'S · under half a session', sizeM: 'M · one session', sizeL: 'L · a full session or more',
+    steps: ['1 · Read the short read', '2 · Copy a prompt', '3 · Paste in a new session', '4 · Tick Built']
+  }, DATA.labels || {});
+
+  if (DATA.lang) document.documentElement.lang = DATA.lang;
+  if (DATA.dir) document.documentElement.dir = DATA.dir;
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; }
+  function byId(id) { return document.getElementById(id); }
+  // Inline formatting in content strings: **bold** and `code`. Everything else is plain text.
+  function rich(node, text) {
+    String(text === undefined || text === null ? '' : text).split(/(\*\*[^*]+\*\*|`[^`]+`)/).forEach(function (part) {
+      if (!part) return;
+      if (part.length > 4 && part.slice(0, 2) === '**' && part.slice(-2) === '**') node.appendChild(el('b', '', part.slice(2, -2)));
+      else if (part.length > 2 && part[0] === '`' && part[part.length - 1] === '`') node.appendChild(el('code', '', part.slice(1, -1)));
+      else node.appendChild(document.createTextNode(part));
+    });
+    return node;
+  }
+  function list(items) { var ul = el('ul'); (items || []).forEach(function (t) { ul.appendChild(rich(el('li'), t)); }); return ul; }
+  function fill(str, vars) { return String(str).replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? vars[k] : m; }); }
+
+  // Bar and hero
+  byId('mark').textContent = project;
+  [['#read', L.navRead], ['#order', L.navOrder], ['#features', L.navFeatures]].forEach(function (n) {
+    var a = el('a', '', n[1]); a.href = n[0]; byId('nav').appendChild(a);
+  });
+  if (DATA.aura) byId('hero').classList.add('aura-' + DATA.aura);
+  byId('hero-eyebrow').textContent = DATA.eyebrow || '';
+  byId('hero-title').textContent = DATA.headline || '';
+  rich(byId('hero-intro'), DATA.intro || '');
+  (L.steps || []).forEach(function (s) { byId('hero-steps').appendChild(el('li', '', s)); });
+
+  // Short read
+  byId('read-eyebrow').textContent = L.readEyebrow;
+  byId('read-title').textContent = L.readTitle;
+  ((DATA.read && DATA.read.blocks) || []).forEach(function (b) {
+    var block = el('div', 'block' + (b.wide ? ' wide' : ''));
+    if (b.title) block.appendChild(el('h3', '', b.title));
+    if (b.text) block.appendChild(rich(el('p', 'note'), b.text));
+    if (b.bullets && b.bullets.length) block.appendChild(list(b.bullets));
+    if (b.table) {
+      var scroll = el('div', 'scroll'), table = el('table'), thead = el('thead'), hr = el('tr'), tbody = el('tbody');
+      (b.table.columns || []).forEach(function (c) { hr.appendChild(el('th', '', c)); });
+      (b.table.rows || []).forEach(function (row) {
+        var tr = el('tr');
+        row.forEach(function (cell) {
+          var isObj = cell && typeof cell === 'object';
+          tr.appendChild(el('td', isObj && cell.tone ? cell.tone : '', isObj ? cell.text : cell));
+        });
+        tbody.appendChild(tr);
+      });
+      thead.appendChild(hr); table.appendChild(thead); table.appendChild(tbody); scroll.appendChild(table); block.appendChild(scroll);
+    }
+    if (b.note) block.appendChild(rich(el('p', 'note'), b.note));
+    byId('read-grid').appendChild(block);
+  });
+
+  // Sizes: job size on the cool-to-hot effort ramp
+  var SIZE = { S: [1, 'var(--e1)', L.sizeS], M: [2, 'var(--e3)', L.sizeM], L: [3, 'var(--e5)', L.sizeL] };
+  function sizeMeter(size, short) {
+    var s = SIZE[size] || SIZE.M, wrap = el('span', 'size'), dots = el('span', 'dots');
+    for (var i = 0; i < 3; i++) { var d = el('i'); if (i < s[0]) d.style.background = s[1]; dots.appendChild(d); }
+    wrap.appendChild(dots); wrap.appendChild(el('span', '', short ? size : s[2]));
+    return wrap;
+  }
+
+  function flash(btn, text) { var old = btn.dataset.label || btn.textContent; btn.dataset.label = old; btn.textContent = text; setTimeout(function () { btn.textContent = old; }, 1800); }
+  function copyFrom(pre, btn) {
+    function select() {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      flash(btn, L.selected);
+    }
+    try { navigator.clipboard.writeText(pre.textContent).then(function () { flash(btn, L.copied); }, select); }
+    catch (e) { select(); }
+  }
+
+  // "Built" ticks live in this reader's browser only
+  var KEY = 'feature-findings:' + String(DATA.title || project).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  var built = [];
+  try { built = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { built = []; }
+  function saveBuilt() { try { localStorage.setItem(KEY, JSON.stringify(built)); } catch (e) {} }
+
+  var features = DATA.features || [], tiers = DATA.tiers || [];
+  var tierById = {}; tiers.forEach(function (t) { tierById[t.id] = t; });
+  var ground = DATA.groundRules ? '\n\n' + String(DATA.groundRules).trim() : '';
+  var countEl = byId('built-count');
+  function showCount() { countEl.textContent = fill(L.builtCount, { n: built.filter(function (id) { return features.some(function (f) { return f.id === id; }); }).length, total: features.length }); }
+
+  // Build order
+  byId('order-eyebrow').textContent = L.orderEyebrow;
+  byId('order-title').textContent = L.orderTitle;
+  byId('order-lede').textContent = DATA.orderNote || L.orderLede;
+  var headRow = document.querySelector('#order-table thead tr'), orderBody = document.querySelector('#order-table tbody');
+  [L.colNo, L.colFeature, L.colFrom, L.colSize, L.colNeeds].forEach(function (c) { headRow.appendChild(el('th', '', c)); });
+
+  // Features
+  byId('features-eyebrow').textContent = L.featuresEyebrow;
+  byId('features-title').textContent = L.featuresTitle;
+  byId('features-lede').textContent = DATA.featuresNote || L.featuresLede;
+  var cards = byId('cards'), lastTier = null;
+
+  features.forEach(function (f) {
+    if (f.tier !== lastTier && tierById[f.tier]) {
+      var th = el('div', 'tier-head'); th.dataset.tier = f.tier;
+      th.appendChild(el('span', 'eyebrow', tierById[f.tier].label));
+      if (tierById[f.tier].note) th.appendChild(el('span', '', tierById[f.tier].note));
+      cards.appendChild(th);
+    }
+    lastTier = f.tier;
+
+    var card = el('article', 'card'); card.id = 'f' + f.id; card.dataset.tier = f.tier;
+    var top = el('div', 'card-top');
+    top.appendChild(el('span', 'no', f.id));
+    (f.sources || []).forEach(function (s) { top.appendChild(el('span', 'tag', s)); });
+    top.appendChild(sizeMeter(f.size));
+    var toggle = el('label', 'built-toggle'), box = el('input');
+    box.type = 'checkbox'; box.id = 'built-' + f.id; box.checked = built.indexOf(f.id) !== -1;
+    toggle.appendChild(box); toggle.appendChild(el('span', '', L.built)); top.appendChild(toggle);
+    card.appendChild(top);
+    if (box.checked) card.classList.add('built');
+    box.addEventListener('change', function () {
+      built = built.filter(function (x) { return x !== f.id; }); if (box.checked) built.push(f.id);
+      card.classList.toggle('built', box.checked); saveBuilt(); showCount();
+    });
+
+    card.appendChild(el('h3', '', f.title));
+    card.appendChild(rich(el('p', 'desc'), f.description));
+    var deps = [];
+    if (f.needs && f.needs.length) deps.push(L.needs + ': ' + f.needs.join(', '));
+    if (f.helps && f.helps.length) deps.push(L.helps + ': ' + f.helps.join(', '));
+    if (deps.length) card.appendChild(el('p', 'needs', deps.join(' · ')));
+
+    var hasSource = f.inSource && f.inSource.length, hasBetter = f.better && f.better.length;
+    if (hasSource || hasBetter) {
+      var cols = el('div', 'cols' + (hasSource && hasBetter ? '' : ' one'));
+      if (hasSource) { var a = el('div', 'col'); a.appendChild(el('span', 'eyebrow', L.source)); a.appendChild(list(f.inSource)); cols.appendChild(a); }
+      if (hasBetter) { var b = el('div', 'col'); b.appendChild(el('span', 'eyebrow', L.better)); b.appendChild(list(f.better)); cols.appendChild(b); }
+      card.appendChild(cols);
+    }
+    if (f.landsIn && f.landsIn.length) {
+      var lands = el('div', 'lands'); lands.appendChild(el('span', 'eyebrow', L.lands));
+      f.landsIn.forEach(function (p) { lands.appendChild(el('code', '', p)); }); card.appendChild(lands);
+    }
+
+    var code = el('div', 'code'), head = el('div', 'code-head');
+    head.appendChild(el('span', 'eyebrow', fill(L.prompt, { id: f.id })));
+    var expand = el('button', 'btn', L.expand); expand.type = 'button';
+    var copy = el('button', 'btn primary', L.copy); copy.type = 'button';
+    head.appendChild(expand); head.appendChild(copy);
+    var pre = el('pre', '', String(f.prompt || '').trim() + ground); pre.tabIndex = 0; pre.dir = 'auto';
+    code.appendChild(head); code.appendChild(pre); card.appendChild(code);
+    expand.addEventListener('click', function () { var open = code.classList.toggle('open'); expand.textContent = open ? L.collapse : L.expand; });
+    copy.addEventListener('click', function () { copyFrom(pre, copy); });
+    cards.appendChild(card);
+
+    var tr = el('tr');
+    tr.appendChild(el('td', 'num', f.id));
+    var nameCell = el('td', 'wrapcell'), link = el('a', '', f.title); link.href = '#f' + f.id; nameCell.appendChild(link); tr.appendChild(nameCell);
+    tr.appendChild(el('td', '', (f.sources || []).join(' + ') || '–'));
+    var sizeCell = el('td'); sizeCell.appendChild(sizeMeter(f.size, true)); tr.appendChild(sizeCell);
+    var needsText = (f.needs || []).join(', ');
+    if (f.helps && f.helps.length) needsText += (needsText ? ' · ' : '') + f.helps.join(', ') + ' helps';
+    tr.appendChild(el('td', '', needsText || '–'));
+    orderBody.appendChild(tr);
+  });
+  showCount();
+
+  // Tier filter
+  var tools = byId('tools');
+  function chip(id, label, pressed) {
+    var c = el('button', 'chip', label); c.type = 'button'; c.id = 'filter-' + id; c.dataset.tier = id; c.setAttribute('aria-pressed', String(pressed));
+    c.addEventListener('click', function () {
+      tools.querySelectorAll('.chip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); });
+      cards.querySelectorAll('[data-tier]').forEach(function (node) { node.hidden = id !== 'all' && node.dataset.tier !== id; });
+    });
+    tools.insertBefore(c, countEl);
+  }
+  if (tiers.length > 1) { chip('all', L.all, true); tiers.forEach(function (t) { chip(t.id, t.label, false); }); }
+
+  rich(byId('footer'), DATA.footer || '');
+  if (!DATA.footer) byId('footer').hidden = true;
+})();
+</script>
+</body>
+</html>
