@@ -1,0 +1,22 @@
+{
+  "name": "featspiration",
+  "owner": {
+    "name": "Kareem Sayed",
+    "url": "https://github.com/KareemmSayed"
+  },
+  "metadata": {
+    "description": "Agent skills by Kareem Sayed."
+  },
+  "plugins": [
+    {
+      "name": "featspiration",
+      "source": "./",
+      "description": "Review outside codebases, libraries, papers or idea lists against your project and get one designed findings page: a short read, a build order, and a copy-ready prompt per feature.",
+      "version": "1.0.0",
+      "author": { "name": "Kareem Sayed" },
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": ["agent-skills", "claude-code", "feature-planning"]
+    }
+  ]
+}

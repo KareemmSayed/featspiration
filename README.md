@@ -27,6 +27,13 @@ npx skills add KareemmSayed/featspiration -a claude-code -a cursor -a antigravit
 npx skills add KareemmSayed/featspiration -g
 ```
 
+**Claude Code plugin.** Add the repo as a marketplace, then install:
+
+```
+/plugin marketplace add KareemmSayed/featspiration
+/plugin install featspiration@featspiration
+```
+
 **By hand.** Copy the `skills/featspiration` folder into your tool's skills directory. For Claude Code that is `~/.claude/skills/` (all projects) or `.claude/skills/` (one project).
 
 **Claude desktop and claude.ai.** Zip the skill folder and upload the zip where the app manages skills:

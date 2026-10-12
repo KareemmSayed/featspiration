@@ -1,0 +1,13 @@
+{
+  "name": "featspiration",
+  "description": "Review outside codebases, libraries, papers or idea lists against your project and get one designed findings page: a short read, a build order, and a copy-ready prompt per feature.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kareem Sayed",
+    "url": "https://github.com/KareemmSayed"
+  },
+  "homepage": "https://github.com/KareemmSayed/featspiration",
+  "repository": "https://github.com/KareemmSayed/featspiration",
+  "license": "MIT",
+  "keywords": ["agent-skills", "claude-code", "feature-planning", "code-review", "prompts"]
+}
